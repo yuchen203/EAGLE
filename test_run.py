@@ -11,7 +11,7 @@ model = EaModel.from_pretrained(
 )
 model.eval()
 your_message="Hello"
-conv = get_conversation_template("vicuna")
+conv = get_conversation_template("qwen")
 conv.append_message(conv.roles[0], your_message)
 conv.append_message(conv.roles[1], None)
 prompt = conv.get_prompt()
