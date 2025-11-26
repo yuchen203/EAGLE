@@ -1,9 +1,9 @@
+from human_eval.data import read_problems
 import torch, json, time
-from datasets import load_dataset
 from eagle.model.ea_model import EaModel
-from fastchat.model import get_conversation_template 
+from fastchat.model import get_conversation_template
 
-dataset = load_dataset("gsm8k", "main")["test"]
+problems = read_problems()
 
 model = EaModel.from_pretrained(
     base_model_path="../Qwen3-8B",
@@ -13,6 +13,7 @@ model = EaModel.from_pretrained(
     device_map="auto",
     total_token=-1
 )
+
 def run_one_question(question):
     # tokenizer encode to ids
     input_ids = model.tokenizer([question]).input_ids
@@ -32,24 +33,29 @@ def run_one_question(question):
 
 output_list = []
 duration_list = []
-total_examples = 100
-for i in range(total_examples):
-    output, duration =run_one_question(dataset[i]["question"])
-    print("finished example", i)
+total_examples = 1
+cnt = 0
+
+for task_id, item in problems.items():
+    output, duration =run_one_question(item['prompt'])
+    cnt += 1
     output_list.append(output)
     duration_list.append(duration)
+    print("finished example", task_id)
+    if cnt >= total_examples:
+        break
 
 result = {}
-result["dateset"] = "gsm8k"
+result["dateset"] = "humaneval"
 result["model"] = "qwen3_8b_eagle3"
 result["total_examples"] = total_examples
 result["generated_texts"] = []
 for i in range(total_examples):
     result["generated_texts"].append({
-        "example_id": i,
+        "example_id": f"Python/{i}",
         "full_text": output_list[i]
     })
 result["times"] = duration_list
 
-with open("gsm8k_eagle3.json", "w", encoding="utf-8") as f:
+with open("humaneval_eagle3.json", "w", encoding="utf-8") as f:
     json.dump(result, f, ensure_ascii=False, indent=2)

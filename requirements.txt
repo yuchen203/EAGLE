@@ -9,3 +9,4 @@ sentencepiece==0.1.99
 protobuf==3.19.0
 wandb
 datasets
+human-eval
